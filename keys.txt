@@ -1,0 +1,2 @@
+endpoint = "https://it2.cognitiveservices.azure.com/"
+key = "27672530983c417c888690a09fd8b6b8"
