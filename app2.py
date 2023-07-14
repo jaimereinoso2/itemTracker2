@@ -10,6 +10,7 @@ path_to_sample_documents = "imagen3.jpg"
 from fastapi import FastAPI, File, UploadFile
 import uvicorn
 from typing import Annotated
+from fastapi.responses import JSONResponse
 
 document_analysis_client = DocumentAnalysisClient(
         endpoint=endpoint, credential=AzureKeyCredential(key)
@@ -18,8 +19,10 @@ document_analysis_client = DocumentAnalysisClient(
 
 def analyze_receipts(archivo):
 
-    
+    recibo = []
 
+
+    
     # with open(path_to_sample_documents, "rb") as f:
     #     poller = document_analysis_client.begin_analyze_document(
     #     "prebuilt-receipt", document=f, locale="en-US"
@@ -41,6 +44,8 @@ def analyze_receipts(archivo):
                     merchant_name.value, merchant_name.confidence
                 )
             )
+            t = ('NombreRetail',merchant_name.value)
+            recibo.append(t)
         
         merchant_address = receipt.fields.get("MerchantAddress")
         if merchant_address:
@@ -57,11 +62,18 @@ def analyze_receipts(archivo):
                     transaction_date.value, transaction_date.confidence
                 )
             )
+            t = ('FechaTransaccion',str(transaction_date.value))
+            recibo.append(t)
+
         if receipt.fields.get("Items"):
+
+            reciboProductos = []
+
             print("Receipt items:")
             for idx, item in enumerate(receipt.fields.get("Items").value):
                 print("...Item #{}".format(idx  + 1))
 
+                productoCodigo = ''
                 item_productCode = item.value.get("ProductCode")
                 if item_productCode:
                     print(
@@ -69,7 +81,10 @@ def analyze_receipts(archivo):
                             item_productCode.value, item_productCode.confidence
                         )
                     )
+                    productoCodigo=item_productCode.value
+                
 
+                productoNombre = ''
                 item_description = item.value.get("Description")
                 if item_description:
                     print(
@@ -77,6 +92,9 @@ def analyze_receipts(archivo):
                             item_description.value, item_description.confidence
                         )
                     )
+                    productoNombre = item_description.value
+
+                productoCantidad=''
                 item_quantity = item.value.get("Quantity")
                 if item_quantity:
                     print(
@@ -84,6 +102,9 @@ def analyze_receipts(archivo):
                             item_quantity.value, item_quantity.confidence
                         )
                     )
+                    productoCantidad=item_quantity.value
+
+                productoPrecio=''
                 item_price = item.value.get("Price")
                 if item_price:
                     print(
@@ -91,6 +112,9 @@ def analyze_receipts(archivo):
                             item_price.value, item_price.confidence
                         )
                     )
+                    productoPrecio=item_price.value
+
+                productoPrecioTotal=''
                 item_total_price = item.value.get("TotalPrice")
                 if item_total_price:
                     print(
@@ -98,6 +122,13 @@ def analyze_receipts(archivo):
                             item_total_price.value, item_total_price.confidence
                         )
                     )
+                    productoPrecioTotal=item_total_price.value
+                
+                t = (productoCodigo, productoNombre, productoCantidad, productoPrecio, productoPrecioTotal)
+                reciboProductos.append(t)
+
+        recibo.append(reciboProductos)
+
         subtotal = receipt.fields.get("Subtotal")
         if subtotal:
             print(
@@ -105,6 +136,9 @@ def analyze_receipts(archivo):
                     subtotal.value, subtotal.confidence
                 )
             )
+            
+            
+
         tax = receipt.fields.get("TotalTax")
         if tax:
             print("Total tax: {} has confidence: {}".format(tax.value, tax.confidence))
@@ -116,6 +150,8 @@ def analyze_receipts(archivo):
             print("Total: {} has confidence: {}".format(total.value, total.confidence))
         print("--------------------------------------")
 
+        return recibo
+
 
 app = FastAPI()
 
@@ -125,8 +161,8 @@ def read_root():
 
 @app.post("/files/")
 async def create_file(miArchivo: Annotated[bytes, File()]):
-    analyze_receipts(miArchivo)
-    return {"file_size": len(miArchivo)}
+    recibo = analyze_receipts(miArchivo)
+    return JSONResponse(content={"recibo": recibo})
 
 
 if __name__ == "__main__":
