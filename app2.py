@@ -164,6 +164,6 @@ async def create_file(miArchivo: Annotated[bytes, File()]):
     recibo = analyze_receipts(miArchivo)
     return JSONResponse(content={"recibo": recibo})
 
-
 if __name__ == "__main__":
-    uvicorn.run(app, host="127.0.0.1", port=8000, reload=True)
+    port = int(os.getenv("PORT", 8000))
+    app.run(host='127.0.0.1', port=port)
