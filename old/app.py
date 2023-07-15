@@ -1,6 +1,5 @@
 from azure.core.credentials import AzureKeyCredential
 from azure.ai.formrecognizer import DocumentAnalysisClient
-from fastapi import FastAPI
 
 
 endpoint = "https://it2.cognitiveservices.azure.com/"
@@ -262,10 +261,4 @@ for idx, invoice in enumerate(invoices.documents):
                 remittance_address_recipient.confidence,
             )
         )
-
-app = FastAPI()
-
-@app.get("/")
-def root():
-    return {"Hello": "World"}
 
