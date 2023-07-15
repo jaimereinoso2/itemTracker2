@@ -1,3 +1,5 @@
+# aplicación lista para desplegar en nodechef
+
 import os
 from azure.ai.formrecognizer import DocumentAnalysisClient
 from azure.core.credentials import AzureKeyCredential
